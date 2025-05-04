@@ -1,3 +1,4 @@
+import os
 import bs4
 
 from langchain_milvus import Milvus
@@ -6,8 +7,9 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-
 # os.environ["OPENAI_API_KEY"] = ...
+MINIO_ACCESS_TOKEN = os.environ.get('MINIO_ACCESS_TOKEN', 'minioadmin:minioadmin')
+MINIO_URI = os.environ.get('MINIO_URI', 'http://localhost:19530')
 
 
 def init_vectorstore(collection_name: str, uri: str, token: str) -> Milvus:
@@ -45,8 +47,8 @@ def load_preprocess_data() -> list[Document]:
 
 if __name__ == '__main__':
     vector_store = init_vectorstore(
-        uri="http://localhost:19530",
-        token="minioadmin:minioadmin",
+        uri=MINIO_URI,
+        token=MINIO_ACCESS_TOKEN,
         collection_name="blog_agents")
 
     data_splits = load_preprocess_data()

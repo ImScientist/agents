@@ -1,3 +1,4 @@
+import os
 import logging
 from langchain import hub
 from langgraph.graph import MessagesState, StateGraph, END
@@ -10,6 +11,9 @@ from langchain_core.messages import SystemMessage
 from vectorstore import init_vectorstore
 
 # os.environ["OPENAI_API_KEY"] = ...
+MINIO_ACCESS_TOKEN = os.environ.get('MINIO_ACCESS_TOKEN', 'minioadmin:minioadmin')
+MINIO_URI = os.environ.get('MINIO_URI', 'http://localhost:19530')
+
 logger = logging.getLogger(__name__)
 
 prompt = hub.pull("rlm/rag-prompt")
@@ -19,8 +23,8 @@ llm = init_chat_model(
     model_provider="openai")
 
 vector_store = init_vectorstore(
-    uri="http://localhost:19530",
-    token="minioadmin:minioadmin",
+    uri=MINIO_URI,
+    token=MINIO_ACCESS_TOKEN,
     collection_name="blog_agents")
 
 
