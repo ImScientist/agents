@@ -39,20 +39,6 @@ streamlit run src/app.py
 Create the image for the app:
 ```shell
 docker build -t streamlit-app -f Dockerfile .
-
-  --network:host \
-  --add-host=host.docker.internal:172.17.0.1 \
-  --add-host host.docker.internal=host-gateway \
-  --network=host \
-
-
-docker run -it --rm --name streamlitapp -p 8501:8501 \
-  -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  --network=bridge \
-  streamlit-app /bin/bash
-
-curl -X 'GET' http://127.0.0.1:9091/webui/
-curl -X 'GET' host.docker.internal:9091/webui/
 ```
 
 
