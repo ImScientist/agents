@@ -27,8 +27,20 @@ kubectl -n milvus port-forward service/milvus-chart 19530:19530
 Fill in the vectordb (you need a valid `OPENAI_API_KEY`):
 
 ```shell
-python src/vectordb.py
+python src/vectorstore.py
 ```
+
+Test the webapp with
+
+```shell
+streamlit run src/app.py
+```
+
+Create the image for the app:
+```shell
+docker build -t streamlit-app -f Dockerfile .
+```
+
 
 ### Resources:
 
