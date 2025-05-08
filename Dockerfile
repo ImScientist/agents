@@ -12,4 +12,4 @@ ENV PYTHONPATH=/main/src
 
 EXPOSE 8501
 
-ENTRYPOINT ["run", "src/app.py"]
+CMD ["streamlit", "run", "src/app.py"]
