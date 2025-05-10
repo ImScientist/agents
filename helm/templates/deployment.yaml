@@ -44,9 +44,22 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          command: ["/bin/bash"]
-{{/*          command: ["streamlit"]*/}}
-{{/*          args: ["run", "src/app.py"]*/}}
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ext-services-credentials
+                  key: OPENAI_API_KEY
+            - name: MINIO_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ext-services-credentials
+                  key: MINIO_ACCESS_TOKEN
+            - name: MINIO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ext-services-credentials
+                  key: MINIO_URI
 
           {{- with .Values.resources }}
           resources:
