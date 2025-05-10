@@ -11,7 +11,7 @@ We will deploy Milvus with standalone mode:
 ```shell
 kubectl create namespace milvus
 
-helm upgrade -n milvus --install milvus-chart \
+helm_webapp upgrade -n milvus --install milvus-chart \
     --set cluster.enabled=false \
     --set etcd.replicaCount=1 \
     --set pulsarv3.enabled=false \
@@ -30,15 +30,26 @@ Fill in the vectordb (you need a valid `OPENAI_API_KEY`):
 python src/vectorstore.py
 ```
 
+### Webapp
+
 Test the webapp with
 
 ```shell
 streamlit run src/app.py
 ```
 
+### Helm chart
+
 Create the image for the app:
 ```shell
 docker build -t streamlit-app -f Dockerfile .
+
+kubectl create namespace webapp
+
+helm install -n webapp -f helm/values.yaml \
+  webapp-chart helm --dry-run
+
+helm -n webapp delete webapp-chart
 ```
 
 
