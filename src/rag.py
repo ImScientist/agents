@@ -81,6 +81,8 @@ def generate(state: MessagesState):
 def build_graph(**kwargs):
     """ Build graph """
 
+    logger.info("Building graph")
+
     tools = ToolNode([retrieve])
 
     graph_builder = StateGraph(MessagesState)

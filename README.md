@@ -10,7 +10,7 @@ We will use Langchain, externally hosted LLMs (OpenAI) and local deployment of M
   ```shell
   kubectl create namespace milvus
 
-  helm_webapp upgrade -n milvus --install milvus-chart \
+  helm upgrade -n milvus --install milvus-chart \
     --set cluster.enabled=false \
     --set etcd.replicaCount=1 \
     --set pulsarv3.enabled=false \
@@ -82,8 +82,12 @@ vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`.
       helm -n webapp delete webapp-chart
       kubectl -n webapp delete secret ext-services-credentials
       kubectl delete ns webapp
+      
+      helm -n milvus delete milvus-chart
+      kubectl delete ns milvus
       ```
 
 ### Resources:
 
 - [Milvus instalation](https://milvus.io/docs/install_cluster-helm.md)
+- [Milvus helm chart](https://github.com/zilliztech/milvus-helm/tree/master/charts/milvus)
