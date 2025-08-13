@@ -1,0 +1,16 @@
+[project]
+name = "agents"
+version = "0.1.0"
+description = "Streamlit app that utilizes externally hosted LLMs (OpenAI) and a Milvus vector DB"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4==4.13.3",
+    "langchain==0.3.21",
+    "langchain-community==0.3.20",
+    "langchain-core==0.3.56",
+    "langchain-milvus==0.1.10",
+    "langchain-openai==0.3.15",
+    "langchain-text-splitters==0.3.7",
+    "langgraph==0.4.3",
+    "streamlit",
+]

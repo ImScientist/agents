@@ -18,6 +18,10 @@ We will use Langchain, externally hosted LLMs (OpenAI) and local deployment of M
     
   # Access the webui on http://127.0.0.1:9091/webui/
   kubectl -n milvus port-forward service/milvus-chart 9091:9091
+  
+  # The default vectorstore URI and access token should be 
+  # MINIO_URI=http://localhost:19530
+  # MINIO_ACCESS_TOKEN=minioadmin:minioadmin
   ```
 
 - Fill in the vectordb (you need a valid `OPENAI_API_KEY`):
