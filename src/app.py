@@ -1,16 +1,10 @@
+import os
 import uuid
 import streamlit as st
 from rag import build_graph
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
 
-
-@st.cache_resource
-def build_graph_with_memory():
-    memory = MemorySaver()
-    return build_graph(checkpointer=memory)
-
-
-graph = build_graph_with_memory()
+POSTGRES_CONN_STRING = os.environ.get('POSTGRES_CONN_STRING')
 
 
 def run():
@@ -36,10 +30,13 @@ def run():
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.chat_message("assistant"):
-            output = graph.invoke(
-                input={"messages": [{"role": "user", "content": prompt}]},
-                config={"configurable": {"thread_id": st.session_state["thread_id"]}}
-            )
+            with PostgresSaver.from_conn_string(POSTGRES_CONN_STRING) as checkpointer:
+                graph = build_graph(checkpointer=checkpointer)
+                output = graph.invoke(
+                    input={"messages": [{"role": "user", "content": prompt}]},
+                    config={"configurable": {"thread_id": st.session_state["thread_id"]}}
+                )
+
             output_message = output["messages"][-1].content
             st.markdown(output_message)
 
