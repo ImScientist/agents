@@ -1,16 +1,19 @@
 import uuid
 import streamlit as st
 from rag import build_graph
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
+
+DB_URI = "postgres://postgres:pwd@localhost:5432/postgres"
 
 
 @st.cache_resource
-def build_graph_with_memory():
-    memory = MemorySaver()
-    return build_graph(checkpointer=memory)
+def build_graph_with_inmemory_checkpointer():
+    checkpointer = InMemorySaver()
+    return build_graph(checkpointer=checkpointer)
 
-
-graph = build_graph_with_memory()
+# TODO: initialize this graph only if a particular condition is met
+graph_inmemory = build_graph_with_inmemory_checkpointer()
 
 
 def run():
@@ -36,10 +39,18 @@ def run():
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.chat_message("assistant"):
-            output = graph.invoke(
-                input={"messages": [{"role": "user", "content": prompt}]},
-                config={"configurable": {"thread_id": st.session_state["thread_id"]}}
-            )
+            with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
+                graph = build_graph(checkpointer=checkpointer)
+                output = graph.invoke(
+                    input={"messages": [{"role": "user", "content": prompt}]},
+                    config={"configurable": {"thread_id": st.session_state["thread_id"]}}
+                )
+
+            # removed
+            # output = graph.invoke(
+            #     input={"messages": [{"role": "user", "content": prompt}]},
+            #     config={"configurable": {"thread_id": st.session_state["thread_id"]}}
+            # )
             output_message = output["messages"][-1].content
             st.markdown(output_message)
 
