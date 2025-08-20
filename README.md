@@ -2,7 +2,8 @@
 
 Deployment of conversational RAGs on a Kubernetes cluster (the exact goal is not clear yet).
 
-We will use Langchain, externally hosted LLMs (OpenAI) and local deployment of Milvus vector DB.
+We will use Langchain, externally hosted LLMs (OpenAI), local deployment of Milvus vector DB and of a 
+Postgres DB (for conversation history).
 
 ## Setup Milvus vector DB
 
@@ -125,7 +126,7 @@ vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`, and the connection string to the
       kubectl delete ns milvus
       ```
 
-### Resources:
+## Resources:
 
 - [Milvus instalation](https://milvus.io/docs/install_cluster-helm.md)
 - [Milvus helm chart](https://github.com/zilliztech/milvus-helm/tree/master/charts/milvus)
