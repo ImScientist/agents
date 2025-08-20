@@ -88,11 +88,14 @@ vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`, and the connection string to the
       ```shell
       kubectl create namespace webapp
       
+      # Create a secret that contains all relevant env variables
+      # Note that service URIs are extended with ${namespace}.svc.cluster.local
       kubectl -n webapp create secret generic ext-services-credentials \
         --from-literal=OPENAI_API_KEY=$OPENAI_API_KEY \
         --from-literal=MINIO_ACCESS_TOKEN=minioadmin:minioadmin \
-        --from-literal=MINIO_URI=http://milvus-chart.milvus.svc.cluster.local:19530
-    
+        --from-literal=MINIO_URI=http://milvus-chart.milvus.svc.cluster.local:19530 \
+        --from-literal=POSTGRES_CONN_STRING=postgres://postgres:pwd@psql-chart-postgresql.postgres.svc.cluster.local:5432/postgres
+ 
       # Inspect the secret content
       kubectl -n webapp get secret ext-services-credentials -o yaml
     
@@ -115,6 +118,9 @@ vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`, and the connection string to the
       kubectl -n webapp delete secret ext-services-credentials
       kubectl delete ns webapp
       
+      helm -n postgres delete psql-chart
+      kubectl delete ns postgres
+      
       helm -n milvus delete milvus-chart
       kubectl delete ns milvus
       ```
@@ -123,3 +129,4 @@ vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`, and the connection string to the
 
 - [Milvus instalation](https://milvus.io/docs/install_cluster-helm.md)
 - [Milvus helm chart](https://github.com/zilliztech/milvus-helm/tree/master/charts/milvus)
+- [Postgres helm chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
