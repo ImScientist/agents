@@ -4,7 +4,7 @@ Deployment of conversational RAGs on a Kubernetes cluster (the exact goal is not
 
 We will use Langchain, externally hosted LLMs (OpenAI) and local deployment of Milvus vector DB.
 
-### Setup Milvus
+## Setup Milvus vector DB
 
 - We will deploy Milvus with standalone mode:
   ```shell
@@ -31,15 +31,43 @@ We will use Langchain, externally hosted LLMs (OpenAI) and local deployment of M
   python src/vectorstore.py
   ```
 
-### Webapp
+## Setup Postgres as LangGraph Checkpoint saver
 
-To test the webapp, you need a valid `OPENAI_API_KEY` env variable, and the right access credentials for the
-vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`.
+- Use the bitnami helm chart:
+  ```shell
+  helm repo add bitnami https://charts.bitnami.com/bitnami
+  
+  kubectl create ns postgres
+  
+  helm install --namespace postgres \
+    psql-chart oci://registry-1.docker.io/bitnamicharts/postgresql \
+    --set auth.postgresPassword=pwd
+  ```
+
+- Run once the python script `src/memory.py` to setup the DB:
+  ```shell 
+  kubectl port-forward --namespace postgres svc/psql-chart-postgresql 5432:5432
+  
+  # You have to change this connection string if you have used different parameters when creating the chart  
+  export POSTGRES_CONN_STRING=postgres://postgres:pwd@localhost:5432/postgres
+  
+  # Execute script to setup the Postgres DB
+  python src/memory.py
+  
+  # Check the changes (optional) ...
+  psql "${POSTGRES_CONN_STRING}"
+  ```
+
+## Webapp
+
+To test the webapp, you need a valid `OPENAI_API_KEY` env variable, the right access credentials for the
+vectorstore: `MINIO_ACCESS_TOKEN`, `MINIO_URI`, and the connection string to the Postgres DB `POSTGRES_CONN_STRING`.
 
 - To test the webapp locally, execute:
   ```shell
   export OPENAI_API_KEY=...
   kubectl -n milvus port-forward service/milvus-chart 19530:19530
+  kubectl -n postgres port-forward svc/psql-chart-postgresql 5432:5432
 
   # Access the webui on http://127.0.0.1:8501/
   streamlit run src/app.py
