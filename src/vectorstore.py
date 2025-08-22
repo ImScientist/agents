@@ -1,4 +1,5 @@
 import os
+import logging
 import bs4
 
 from langchain_milvus import Milvus
@@ -7,8 +8,11 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-MINIO_ACCESS_TOKEN = os.environ.get('MINIO_ACCESS_TOKEN', 'minioadmin:minioadmin')
-MINIO_URI = os.environ.get('MINIO_URI', 'http://localhost:19530')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
+MINIO_ACCESS_TOKEN = os.environ['MINIO_ACCESS_TOKEN']
+MINIO_URI = os.environ['MINIO_URI']
 
 
 def init_vectorstore(collection_name: str) -> Milvus:
@@ -26,10 +30,13 @@ def init_vectorstore(collection_name: str) -> Milvus:
     return vector_store
 
 
-def load_preprocess_data() -> list[Document]:
+def load_preprocess_data(
+        url: str = "https://lilianweng.github.io/posts/2023-06-23-agent/",
+        chunk_size: int = 1000,
+        chunk_overlap: int = 200
+) -> list[Document]:
     """ Load and preprocess information before inserting into vector db """
 
-    url = "https://lilianweng.github.io/posts/2023-06-23-agent/"
     soup_strainer = bs4.SoupStrainer(class_=("post-content", "post-title", "post-header"))
 
     loader = WebBaseLoader(
@@ -38,15 +45,19 @@ def load_preprocess_data() -> list[Document]:
 
     docs = loader.load()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1_000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap)
+
     doc_splits = text_splitter.split_documents(docs)
+
+    logger.info(f"Successfully loaded and split {len(doc_splits)} documents from {url}")
 
     return doc_splits
 
 
 if __name__ == '__main__':
     vector_store = init_vectorstore(collection_name="blog_agents")
-
     data_splits = load_preprocess_data()
-
-    _ = vector_store.add_documents(documents=data_splits)
+    vector_store.add_documents(documents=data_splits)
+    logger.info("Successfully populated vectorstore")
