@@ -6,7 +6,7 @@ We will use Langchain, externally hosted LLMs (OpenAI), local deployment of Milv
 Postgres DB (for conversation history).
 
 <p align="center">
-  <img width="500" alt="project_diagram" src="project_diagram.png" />
+  <img width="600" alt="project_diagram" src="project_diagram.png" />
 </p>
 
 
