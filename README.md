@@ -28,6 +28,9 @@ Postgres DB (for conversation history).
 - Fill in the vectordb (you need a valid `OPENAI_API_KEY`):
   ```shell
   export OPENAI_API_KEY=...
+  export MINIO_URI=...
+  export MINIO_ACCESS_TOKEN=...
+  
   kubectl -n milvus port-forward service/milvus-chart 19530:19530
   python src/vectorstore.py
   ```
