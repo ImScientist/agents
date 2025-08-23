@@ -1,46 +1,83 @@
 import os
 import uuid
+import logging
+
 import streamlit as st
 from rag import build_graph
 from langgraph.checkpoint.postgres import PostgresSaver
 
-POSTGRES_CONN_STRING = os.environ.get('POSTGRES_CONN_STRING')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
+POSTGRES_CONN_STRING = os.environ['POSTGRES_CONN_STRING']
 
 
-def run():
-    st.title("LLM RAG")
+def initialize_session_state():
+    """Initialize Streamlit session state variables."""
 
     if 'thread_id' not in st.session_state:
         st.session_state['thread_id'] = uuid.uuid4()
+        logger.info(f"Created new thread: {st.session_state['thread_id']}")
 
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display chat messages from history on app rerun
+
+def display_chat_history():
+    """Display existing chat messages."""
+
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+
+def process_user_input(prompt: str, postgres_conn: str) -> str | None:
+    """Process user input and return assistant response."""
+    try:
+        with PostgresSaver.from_conn_string(postgres_conn) as checkpointer:
+            graph = build_graph(checkpointer=checkpointer)
+
+            output = graph.invoke(
+                input={"messages": [{"role": "user", "content": prompt}]},
+                config={"configurable": {"thread_id": st.session_state["thread_id"]}}
+            )
+
+            if not output or "messages" not in output or not output["messages"]:
+                st.error("❌ No response generated")
+                return None
+
+            response_content = output["messages"][-1].content
+            logger.info(f"Generated response for thread {st.session_state['thread_id']}")
+            return response_content
+
+    except Exception as e:
+        logger.error(f"Error processing user input: {e}")
+        st.error(f"❌ An error occurred: {str(e)}")
+        return None
+
+
+def run():
+    st.title("LLM RAG")
+
+    initialize_session_state()
+
+    display_chat_history()
+
     # Accept user input
-    if prompt := st.chat_input("Insert your question here"):
+    if prompt := st.chat_input("Ask me anything..."):
         with st.chat_message("user"):
             st.markdown(prompt)
-
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.chat_message("assistant"):
-            with PostgresSaver.from_conn_string(POSTGRES_CONN_STRING) as checkpointer:
-                graph = build_graph(checkpointer=checkpointer)
-                output = graph.invoke(
-                    input={"messages": [{"role": "user", "content": prompt}]},
-                    config={"configurable": {"thread_id": st.session_state["thread_id"]}}
-                )
+            response = process_user_input(prompt, POSTGRES_CONN_STRING)
 
-            output_message = output["messages"][-1].content
-            st.markdown(output_message)
-
-        st.session_state.messages.append({"role": "assistant", "content": output_message})
+            if response:
+                st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+            else:
+                st.error("❌ Failed to generate response.")
 
 
 if __name__ == "__main__":
